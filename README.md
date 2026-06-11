@@ -64,3 +64,5 @@ re-auth prompt.
 
 ## Credits
 Brought to you by **PanTeraS**.
+
+If you find this useful, you can [buy me a coffee ☕](https://www.buymeacoffee.com/panteras).

@@ -1,6 +1,11 @@
-"""The Orange Romania integration."""
+"""The Orange Romania integration.
+
+Author: PanTeraS
+"""
 
 from __future__ import annotations
+
+__author__ = "PanTeraS"
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
