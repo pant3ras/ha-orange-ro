@@ -122,10 +122,16 @@ class OrangeConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_reauth(
         self, entry_data: Mapping[str, Any]
     ) -> ConfigFlowResult:
-        """Route re-auth to the method the entry was created with."""
-        if entry_data.get(CONF_AUTH_METHOD) == AUTH_PASSWORD:
-            return await self.async_step_reauth_password()
-        return await self.async_step_reauth_cookie()
+        """Let the user pick how to re-authenticate.
+
+        We deliberately offer both methods rather than locking the user into the
+        one the entry was created with: Orange's reCAPTCHA frequently blocks the
+        password path, and the cookie method is the reliable fallback.
+        """
+        return self.async_show_menu(
+            step_id="reauth",
+            menu_options=["reauth_cookie", "reauth_password"],
+        )
 
     async def async_step_reauth_password(
         self, user_input: dict[str, Any] | None = None

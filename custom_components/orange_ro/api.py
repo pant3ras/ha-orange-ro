@@ -27,29 +27,53 @@ class OrangeAuthError(OrangeError):
     """Raised when the session cookie is missing/expired/invalid."""
 
 
+def _parse_cookie(header: str) -> dict[str, str]:
+    """Parse a raw ``Cookie`` header string into an ordered name->value dict."""
+    cookies: dict[str, str] = {}
+    for part in (header or "").split(";"):
+        part = part.strip()
+        if not part or "=" not in part:
+            continue
+        name, value = part.split("=", 1)
+        cookies[name.strip()] = value.strip()
+    return cookies
+
+
 class OrangeApiClient:
     """Calls the My Orange endpoints the web dashboard uses."""
 
     def __init__(self, session: ClientSession, cookie: str) -> None:
         self._session = session
-        self._cookie = cookie.strip()
+        self._cookies = _parse_cookie(cookie)
 
     @property
     def cookie(self) -> str:
-        return self._cookie
+        return "; ".join(f"{k}={v}" for k, v in self._cookies.items())
 
     def update_cookie(self, cookie: str) -> None:
-        """Replace the session cookie (used after an automatic re-login)."""
-        self._cookie = cookie.strip()
+        """Replace the stored cookies (used after a re-auth / re-login)."""
+        self._cookies = _parse_cookie(cookie)
 
     def _headers(self) -> dict[str, str]:
         return {
             "Accept": "application/json, text/plain, */*",
-            "Cookie": self._cookie,
+            "Cookie": self.cookie,
             "User-Agent": USER_AGENT,
             "X-Requested-With": "XMLHttpRequest",
             "Referer": "https://www.orange.ro/myaccount/reshape/",
         }
+
+    def _absorb(self, resp: ClientResponse) -> None:
+        """Merge any rotated Set-Cookie values so the session stays valid.
+
+        Orange's F5/ASP.NET stack hands back refreshed session cookies (TS*,
+        ASP.NET_SessionId, ...) on most responses. Replaying the original stale
+        cookie is what makes the session die after a few minutes, so we keep the
+        jar current by absorbing each response's Set-Cookie.
+        """
+        for name, morsel in resp.cookies.items():
+            if morsel.value:
+                self._cookies[name] = morsel.value
 
     async def _get(self, path: str) -> Any:
         """GET ``{API_BASE}/{path}`` and return parsed JSON."""
@@ -58,6 +82,7 @@ class OrangeApiClient:
             async with self._session.get(
                 url, headers=self._headers(), allow_redirects=False
             ) as resp:
+                self._absorb(resp)
                 return await self._parse(resp, url)
         except ClientError as err:
             raise OrangeError(f"Network error calling {url}: {err}") from err

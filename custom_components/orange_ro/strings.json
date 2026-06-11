@@ -24,9 +24,17 @@
           "cookie": "Session cookie"
         }
       },
+      "reauth": {
+        "title": "Orange Romania — sign in again",
+        "description": "Your Orange session expired. Choose how to re-authenticate (the cookie method is the most reliable).",
+        "menu_options": {
+          "reauth_cookie": "Session cookie (most reliable)",
+          "reauth_password": "Username & password"
+        }
+      },
       "reauth_password": {
         "title": "Orange Romania — re-enter credentials",
-        "description": "Automatic re-login failed. Confirm your username and password.",
+        "description": "Enter your My Orange credentials. If reCAPTCHA blocks this, go back and use the session cookie method instead.",
         "data": {
           "username": "E-mail or phone number",
           "password": "Password"

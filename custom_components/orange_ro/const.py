@@ -17,10 +17,11 @@ AUTH_COOKIE = "cookie"
 # Base of the My Orange JSON API (same origin the web dashboard calls).
 API_BASE = "https://www.orange.ro/myaccount/api"
 
-# How often to poll Orange. The portal data (usage, invoices) refreshes slowly
-# — Cronos usage is documented as having a ~24h delay — so a long interval is
-# both kind to Orange and perfectly adequate.
-DEFAULT_SCAN_INTERVAL = timedelta(minutes=30)
+# The data itself refreshes slowly (Cronos usage has a ~24h delay), but the poll
+# also doubles as a session KEEP-ALIVE: Orange's session has a short idle window
+# and hands back rotated cookies (which the API client absorbs). Polling every
+# few minutes keeps those cookies fresh so the session doesn't die between polls.
+DEFAULT_SCAN_INTERVAL = timedelta(minutes=4)
 
 # A real-browser User-Agent. Orange's edge (F5 / reCAPTCHA) is friendlier to
 # requests that look like the browser the cookie was minted in.
