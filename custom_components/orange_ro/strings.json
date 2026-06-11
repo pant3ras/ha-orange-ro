@@ -1,0 +1,49 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Orange Romania",
+        "description": "Log in at {url} in your browser, open DevTools → Network, click any `myaccount/api` request, and copy the full **Cookie** request header. Paste it below.",
+        "data": {
+          "cookie": "Session cookie"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Orange Romania session expired",
+        "description": "Your Orange session cookie expired. Log in again, copy a fresh **Cookie** header and paste it below.",
+        "data": {
+          "cookie": "Session cookie"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "That cookie did not resolve to a logged-in Orange session. Make sure you copied the full Cookie header while logged in.",
+      "cannot_connect": "Could not reach the Orange API. Check your connection and try again."
+    },
+    "abort": {
+      "already_configured": "This Orange account is already configured.",
+      "reauth_successful": "Re-authentication was successful."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "thank_you_points": { "name": "Thank You points" },
+      "thank_you_value": { "name": "Thank You value" },
+      "balance_total": { "name": "Balance due" },
+      "last_bill_amount": { "name": "Last bill amount" },
+      "last_bill_date": { "name": "Last bill date" },
+      "bill_due_date": { "name": "Bill due date" },
+      "next_bill_date": { "name": "Next bill date" },
+      "installments_count": { "name": "Installments" },
+      "invoices": { "name": "Invoices" },
+      "subscription": { "name": "Subscription" },
+      "monthly_fee": { "name": "Monthly fee" },
+      "line_status": { "name": "Line status" },
+      "extra_cost": { "name": "Extra cost" },
+      "resources_valid_until": { "name": "Resources valid until" },
+      "upgrade_eligible_date": { "name": "Phone upgrade eligible" },
+      "activation_date": { "name": "Activation date" },
+      "phone_credit": { "name": "Phone credit" }
+    }
+  }
+}
