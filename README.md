@@ -1,6 +1,4 @@
-<p align="center">
-  <img src="logo.svg" alt="Orange" width="96" height="96">
-</p>
+![Orange Romania](https://raw.githubusercontent.com/pant3ras/ha-orange-ro/main/icon.png)
 
 # Orange Romania for Home Assistant
 
