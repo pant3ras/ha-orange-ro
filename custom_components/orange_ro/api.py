@@ -38,6 +38,10 @@ class OrangeApiClient:
     def cookie(self) -> str:
         return self._cookie
 
+    def update_cookie(self, cookie: str) -> None:
+        """Replace the session cookie (used after an automatic re-login)."""
+        self._cookie = cookie.strip()
+
     def _headers(self) -> dict[str, str]:
         return {
             "Accept": "application/json, text/plain, */*",

@@ -35,6 +35,7 @@ from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import OrangeApiClient, OrangeAuthError, OrangeError
+from .auth import OrangeLoginClient
 from .const import DEFAULT_SCAN_INTERVAL, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
@@ -44,7 +45,12 @@ class OrangeDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """Polls all available Orange account data on a schedule."""
 
     def __init__(
-        self, hass: HomeAssistant, entry: ConfigEntry, client: OrangeApiClient
+        self,
+        hass: HomeAssistant,
+        entry: ConfigEntry,
+        client: OrangeApiClient,
+        login_client: OrangeLoginClient | None = None,
+        credentials: tuple[str, str] | None = None,
     ) -> None:
         super().__init__(
             hass,
@@ -54,12 +60,26 @@ class OrangeDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
         self.entry = entry
         self.client = client
+        self._login_client = login_client
+        self._credentials = credentials
 
     async def _async_update_data(self) -> dict[str, Any]:
         try:
             return await self._fetch_all()
         except OrangeAuthError as err:
-            # Triggers HA's re-auth flow so the user can paste a fresh cookie.
+            # With stored credentials we can silently re-login once instead of
+            # bothering the user; only escalate to re-auth if that also fails.
+            if self._login_client and self._credentials:
+                try:
+                    _LOGGER.debug("Session expired; attempting automatic re-login")
+                    cookie = await self._login_client.async_login(*self._credentials)
+                    self.client.update_cookie(cookie)
+                    return await self._fetch_all()
+                except OrangeAuthError as relogin_err:
+                    raise ConfigEntryAuthFailed(str(relogin_err)) from relogin_err
+                except OrangeError as relogin_err:
+                    raise UpdateFailed(str(relogin_err)) from relogin_err
+            # Cookie method: prompt the user to paste a fresh cookie.
             raise ConfigEntryAuthFailed(str(err)) from err
         except OrangeError as err:
             raise UpdateFailed(str(err)) from err

@@ -8,6 +8,11 @@ DOMAIN = "orange_ro"
 
 # Config entry keys
 CONF_COOKIE = "cookie"
+CONF_AUTH_METHOD = "auth_method"
+
+# Authentication methods
+AUTH_PASSWORD = "password"
+AUTH_COOKIE = "cookie"
 
 # Base of the My Orange JSON API (same origin the web dashboard calls).
 API_BASE = "https://www.orange.ro/myaccount/api"

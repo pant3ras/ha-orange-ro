@@ -3,12 +3,36 @@
     "step": {
       "user": {
         "title": "Orange Romania",
+        "description": "Choose how to connect to your Orange account.",
+        "menu_options": {
+          "password": "Username & password",
+          "cookie": "Session cookie (most reliable)"
+        }
+      },
+      "password": {
+        "title": "Log in with username & password",
+        "description": "Enter your My Orange credentials. Note: Orange protects its login with reCAPTCHA, so this may be rejected — if it is, go back and use the session cookie method instead.",
+        "data": {
+          "username": "E-mail or phone number",
+          "password": "Password"
+        }
+      },
+      "cookie": {
+        "title": "Log in with a session cookie",
         "description": "Log in at {url} in your browser, open DevTools → Network, click any `myaccount/api` request, and copy the full **Cookie** request header. Paste it below.",
         "data": {
           "cookie": "Session cookie"
         }
       },
-      "reauth_confirm": {
+      "reauth_password": {
+        "title": "Orange Romania — re-enter credentials",
+        "description": "Automatic re-login failed. Confirm your username and password.",
+        "data": {
+          "username": "E-mail or phone number",
+          "password": "Password"
+        }
+      },
+      "reauth_cookie": {
         "title": "Orange Romania session expired",
         "description": "Your Orange session cookie expired. Log in again, copy a fresh **Cookie** header and paste it below.",
         "data": {

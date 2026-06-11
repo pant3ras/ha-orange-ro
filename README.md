@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="logo.svg" alt="Orange" width="96" height="96">
+</p>
+
 # Orange Romania for Home Assistant
 
 A custom integration that pulls account data from **My Orange** (`orange.ro/myaccount`)
@@ -23,13 +27,30 @@ and contract details — for every line on your account.
 - One sensor per metered resource (data GB / international minutes / SMS remaining);
   unlimited resources are listed as attributes on *Resources valid until*
 
-## Why a cookie instead of username/password
+## Authentication
 
-The Orange login is protected by client-side credential encryption and reCAPTCHA
-Enterprise, which can't be reliably scripted headlessly. So this integration reuses
-the session you create in a normal browser. The trade-off: the session cookie
-**expires periodically** (hours to a couple of weeks). When it does, the entities go
-unavailable and Home Assistant prompts you to paste a fresh cookie (a re-auth flow).
+When you add the integration you choose one of two methods:
+
+### 1. Username & password (convenient, best-effort)
+Enter your My Orange credentials. The integration reproduces Orange's client-side
+credential encryption (RSA-OAEP-256 over an AES-128-CBC + HMAC payload) and walks the
+OAuth2 login flow. If it works, **the session is refreshed automatically** when it
+expires — no manual steps ever again.
+
+> ⚠️ Orange's login is also guarded by **reCAPTCHA Enterprise**, which a non-browser
+> client cannot satisfy. If Orange hard-enforces it, this method is rejected and you'll
+> see an *invalid auth* error — in that case use the cookie method below. (Credentials
+> are stored in Home Assistant's config entry, same as any other integration password.)
+
+### 2. Session cookie (most reliable)
+1. In a desktop browser, log in at <https://www.orange.ro/myaccount/reshape/>.
+2. Open **DevTools** (F12) → **Network** tab.
+3. Reload the page. Click any request whose URL contains `myaccount/api/` (e.g. `userData`).
+4. In **Headers → Request Headers**, find **`Cookie`** and copy its *entire* value.
+5. Paste it into the integration's cookie field.
+
+The cookie **expires periodically** (hours to a couple of weeks). When it does, the
+entities go unavailable and Home Assistant prompts you to paste a fresh one (re-auth).
 
 ## Installation
 
@@ -42,18 +63,8 @@ unavailable and Home Assistant prompts you to paste a fresh cookie (a re-auth fl
 Copy `custom_components/orange_ro/` into your HA `config/custom_components/` folder and
 restart Home Assistant.
 
-## Setup — getting your session cookie
-
-1. In a desktop browser, log in at <https://www.orange.ro/myaccount/reshape/>.
-2. Open **DevTools** (F12) → **Network** tab.
-3. Reload the page. Click any request whose URL contains `myaccount/api/`
-   (e.g. `userData`).
-4. In **Headers → Request Headers**, find **`Cookie`** and copy its *entire* value.
-5. In Home Assistant: **Settings → Devices & Services → Add Integration →
-   Orange Romania**, and paste the cookie.
-
-When the session later expires, repeat steps 1–4 and paste the new cookie into the
-re-auth prompt.
+Then: **Settings → Devices & Services → Add Integration → Orange Romania** and pick a
+method above.
 
 ## Notes & limitations
 - Polls every 30 minutes. Orange's usage (Cronos) data is itself delayed ~24h, so
