@@ -1,0 +1,10 @@
+Orange Romania — Home Assistant integration
+Copyright (c) 2026 PanTeraS
+
+The mobile-app OAuth2 login (token endpoint, client credentials, refresh-token
+flow) and the v5 invoice endpoints are adapted from:
+
+  utilitati_romania — https://github.com/HAForgeLabs/utilitati_romania
+  Licensed under the MIT License.
+  Copyright (c) 2026 Marius Onițiu
+  Portions Copyright (c) 2024, 2026 Cristian Necrea

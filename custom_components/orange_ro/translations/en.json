@@ -3,53 +3,15 @@
     "step": {
       "user": {
         "title": "Orange Romania",
-        "description": "Choose how to connect to your Orange account.",
-        "menu_options": {
-          "password": "Username & password",
-          "cookie": "Session cookie (most reliable)"
-        }
-      },
-      "password": {
-        "title": "Log in with username & password",
-        "description": "Enter your My Orange credentials. Note: Orange protects its login with reCAPTCHA, so this may be rejected — if it is, go back and use the session cookie method instead.",
+        "description": "Sign in with your My Orange account (the e-mail or phone number and password you use in the MyOrange app). The connection uses the app's secure login, so it stays signed in — no cookies, no reCAPTCHA.",
         "data": {
           "username": "E-mail or phone number",
           "password": "Password"
-        }
-      },
-      "cookie": {
-        "title": "Log in with a session cookie",
-        "description": "**Use a private/incognito window** — if you copy the cookie from your normal browser session, Home Assistant and your browser will share one Orange session and keep logging each other out.\n\n1. Open an **incognito/private** window and log in at {url}\n2. Open DevTools → Network, click any `myaccount/api` request, copy the full **Cookie** request header\n3. Paste it below, then **close the incognito window without logging out**",
-        "data": {
-          "cookie": "Session cookie"
-        }
-      },
-      "reauth": {
-        "title": "Orange Romania — sign in again",
-        "description": "Your Orange session expired. Choose how to re-authenticate (the cookie method is the most reliable).",
-        "menu_options": {
-          "reauth_cookie": "Session cookie (most reliable)",
-          "reauth_password": "Username & password"
-        }
-      },
-      "reauth_password": {
-        "title": "Orange Romania — re-enter credentials",
-        "description": "Enter your My Orange credentials. If reCAPTCHA blocks this, go back and use the session cookie method instead.",
-        "data": {
-          "username": "E-mail or phone number",
-          "password": "Password"
-        }
-      },
-      "reauth_cookie": {
-        "title": "Orange Romania session expired",
-        "description": "Your Orange session expired. Log in **in a private/incognito window**, copy a fresh **Cookie** header from any `myaccount/api` request, paste it below, then close the incognito window **without logging out**. Don't reuse that session in your browser — sharing it is what causes the constant logouts.",
-        "data": {
-          "cookie": "Session cookie"
         }
       }
     },
     "error": {
-      "invalid_auth": "That cookie did not resolve to a logged-in Orange session. Make sure you copied the full Cookie header while logged in.",
+      "invalid_auth": "Wrong e-mail/phone number or password.",
       "cannot_connect": "Could not reach the Orange API. Check your connection and try again."
     },
     "abort": {

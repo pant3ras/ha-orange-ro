@@ -2,13 +2,12 @@
 
 # Orange Romania for Home Assistant
 
-A custom integration that pulls account data from **My Orange** (`orange.ro/myaccount`)
-into Home Assistant: mobile usage, invoices/balance, Thank You points, subscription
-and contract details — for every line on your account.
+A custom integration that pulls account data from **My Orange** into Home Assistant:
+invoices/balance, Thank You points, subscription and contract details, and mobile
+usage — for every line on your account.
 
-> Unofficial. Not affiliated with or endorsed by Orange. It uses the same private
-> JSON API that the My Orange web dashboard calls, authenticated with your own
-> browser session cookie.
+> Unofficial. Not affiliated with or endorsed by Orange. It signs in the same way the
+> **MyOrange mobile app** does and reads your own account data.
 
 ## What you get
 
@@ -25,30 +24,26 @@ and contract details — for every line on your account.
 - One sensor per metered resource (data GB / international minutes / SMS remaining);
   unlimited resources are listed as attributes on *Resources valid until*
 
-## Authentication
+## Authentication — stays signed in
 
-When you add the integration you choose one of two methods:
+Add the integration and enter your **My Orange e-mail (or phone number) and password** —
+that's it. The integration authenticates exactly like the MyOrange Android app: an
+OAuth2 login that returns a **refresh token**, which it then uses to renew access
+**silently, indefinitely**.
 
-### 1. Username & password (convenient, best-effort)
-Enter your My Orange credentials. The integration reproduces Orange's client-side
-credential encryption (RSA-OAEP-256 over an AES-128-CBC + HMAC payload) and walks the
-OAuth2 login flow. If it works, **the session is refreshed automatically** when it
-expires — no manual steps ever again.
+- **No cookies, no reCAPTCHA, no 2-step codes.**
+- Survives restarts (the refresh token is stored in the config entry).
+- You'll only ever be asked to sign in again if you change your password.
 
-> ⚠️ Orange's login is also guarded by **reCAPTCHA Enterprise**, which a non-browser
-> client cannot satisfy. If Orange hard-enforces it, this method is rejected and you'll
-> see an *invalid auth* error — in that case use the cookie method below. (Credentials
-> are stored in Home Assistant's config entry, same as any other integration password.)
+Your password is stored in Home Assistant's config entry (like any integration
+credential) and is used to obtain the token.
 
-### 2. Session cookie (most reliable)
-1. In a desktop browser, log in at <https://www.orange.ro/myaccount/reshape/>.
-2. Open **DevTools** (F12) → **Network** tab.
-3. Reload the page. Click any request whose URL contains `myaccount/api/` (e.g. `userData`).
-4. In **Headers → Request Headers**, find **`Cookie`** and copy its *entire* value.
-5. Paste it into the integration's cookie field.
-
-The cookie **expires periodically** (hours to a couple of weeks). When it does, the
-entities go unavailable and Home Assistant prompts you to paste a fresh one (re-auth).
+> **How the data is sourced.** Billing (invoices, balance, due dates, subscription,
+> line status) comes from Orange's mobile API and is always available. The richer
+> extras (Thank You points, resources/usage, monthly fee, upgrade-eligible date,
+> phone credit) come from Orange's older web API, fetched best-effort with the same
+> login. If Orange's gateway declines those for the mobile token, only those extra
+> sensors go unavailable — billing keeps working.
 
 ## Installation
 
@@ -61,17 +56,25 @@ entities go unavailable and Home Assistant prompts you to paste a fresh one (re-
 Copy `custom_components/orange_ro/` into your HA `config/custom_components/` folder and
 restart Home Assistant.
 
-Then: **Settings → Devices & Services → Add Integration → Orange Romania** and pick a
-method above.
+Then: **Settings → Devices & Services → Add Integration → Orange Romania**.
+
+> Upgrading from an older cookie-based version? After the update, Home Assistant will
+> ask you to sign in once with your e-mail and password — your existing sensors and
+> history are kept.
 
 ## Notes & limitations
-- Polls every 30 minutes. Orange's usage (Cronos) data is itself delayed ~24h, so
-  more frequent polling gains nothing.
-- Money: subscription fee and Thank You value are in EUR; invoice/balance figures
-  are in RON (as Orange returns them).
+- Polls hourly. Orange's usage (Cronos) data is itself delayed ~24h, so more frequent
+  polling gains nothing.
+- Money: subscription fee and Thank You value are in EUR; invoice/balance figures are
+  in RON (as Orange returns them).
 - Read-only. The integration never performs account actions, payments, or changes.
 
 ## Credits
+
 Brought to you by **PanTeraS**.
+
+The mobile OAuth login flow is adapted from
+[HAForgeLabs/utilitati_romania](https://github.com/HAForgeLabs/utilitati_romania)
+(MIT) — see [`NOTICE`](NOTICE).
 
 If you find this useful, you can [buy me a coffee ☕](https://www.buymeacoffee.com/panteras).

@@ -7,6 +7,6 @@
   "integration_type": "hub",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/pant3ras/ha-orange-ro/issues",
-  "requirements": ["cryptography>=41.0.0"],
-  "version": "1.1.0"
+  "requirements": [],
+  "version": "2.0.0"
 }

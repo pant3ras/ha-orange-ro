@@ -1,6 +1,7 @@
 """The Orange Romania integration.
 
 Author: PanTeraS
+Mobile OAuth login adapted from HAForgeLabs/utilitati_romania (MIT).
 """
 
 from __future__ import annotations
@@ -10,12 +11,12 @@ __author__ = "PanTeraS"
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
+from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 
-from .api import OrangeApiClient, OrangeAuthError, OrangeError
-from .auth import OrangeLoginClient
-from .const import AUTH_PASSWORD, CONF_AUTH_METHOD, CONF_COOKIE, DOMAIN
+from .api import OrangeApiClient
+from .auth import OrangeOAuth
+from .const import CONF_REFRESH_TOKEN, DOMAIN
 from .coordinator import OrangeDataCoordinator
 
 PLATFORMS: list[Platform] = [Platform.SENSOR]
@@ -25,30 +26,19 @@ type OrangeConfigEntry = ConfigEntry[OrangeDataCoordinator]
 
 async def async_setup_entry(hass: HomeAssistant, entry: OrangeConfigEntry) -> bool:
     """Set up Orange Romania from a config entry."""
-    login_client: OrangeLoginClient | None = None
-    credentials: tuple[str, str] | None = None
+    username = entry.data.get(CONF_USERNAME)
+    password = entry.data.get(CONF_PASSWORD)
+    if not username or not password:
+        # Pre-OAuth (cookie/web) entry — needs a one-time re-auth to collect
+        # credentials for the mobile OAuth flow.
+        raise ConfigEntryAuthFailed("Orange now signs in with e-mail + password")
 
-    if entry.data.get(CONF_AUTH_METHOD) == AUTH_PASSWORD:
-        username = entry.data[CONF_USERNAME]
-        password = entry.data[CONF_PASSWORD]
-        credentials = (username, password)
-        # Isolated jar for the multi-redirect OAuth login.
-        login_client = OrangeLoginClient(async_create_clientsession(hass))
-        try:
-            cookie = await login_client.async_login(username, password)
-        except OrangeAuthError as err:
-            raise ConfigEntryAuthFailed(str(err)) from err
-        except OrangeError as err:
-            raise ConfigEntryNotReady(str(err)) from err
-    else:
-        cookie = entry.data[CONF_COOKIE]
-
-    # Isolated session: HA's shared cookie jar would auto-store Orange's
-    # rotated cookies and silently override the header we manage ourselves.
-    client = OrangeApiClient(async_create_clientsession(hass), cookie)
-    coordinator = OrangeDataCoordinator(
-        hass, entry, client, login_client=login_client, credentials=credentials
+    session = async_create_clientsession(hass)
+    auth = OrangeOAuth(
+        session, username, password, refresh_token=entry.data.get(CONF_REFRESH_TOKEN)
     )
+    client = OrangeApiClient(session, auth)
+    coordinator = OrangeDataCoordinator(hass, entry, client, auth)
 
     await coordinator.async_config_entry_first_refresh()
 
