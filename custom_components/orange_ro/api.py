@@ -11,12 +11,18 @@ from __future__ import annotations
 
 import logging
 from typing import Any
+from urllib.parse import urljoin
 
 from aiohttp import ClientError, ClientResponse, ClientSession
 
 from .const import API_BASE, USER_AGENT
 
 _LOGGER = logging.getLogger(__name__)
+
+# Browser entry point whose redirect chain re-mints an API session from the
+# long-lived SSO cookies (served from /accounts on the same host).
+REFRESH_URL = "https://www.orange.ro/myaccount/reshape/"
+_MAX_REFRESH_HOPS = 15
 
 
 class OrangeError(Exception):
@@ -74,6 +80,50 @@ class OrangeApiClient:
         for name, morsel in resp.cookies.items():
             if morsel.value:
                 self._cookies[name] = morsel.value
+
+    def _headers_html(self) -> dict[str, str]:
+        """Headers for browser-style page navigation (the SSO redirect chain)."""
+        return {
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Cookie": self.cookie,
+            "User-Agent": USER_AGENT,
+        }
+
+    async def async_refresh_session(self) -> None:
+        """Re-mint the API session by replaying the SSO redirect chain.
+
+        The myaccount API session is short-lived, but the SSO cookies under
+        /accounts last much longer. Loading the reshape entry URL makes the
+        server walk the OAuth redirect dance and, while the SSO session holds,
+        hand back a brand-new API session without ever showing a login form —
+        the same thing a browser does when revisiting the page after idling.
+        We follow the chain hop by hop so every rotated Set-Cookie is absorbed.
+
+        Raises OrangeAuthError if we land on the login form (SSO expired too).
+        """
+        url = REFRESH_URL
+        for _ in range(_MAX_REFRESH_HOPS):
+            try:
+                async with self._session.get(
+                    url, headers=self._headers_html(), allow_redirects=False
+                ) as resp:
+                    self._absorb(resp)
+                    location = resp.headers.get("Location")
+                    if resp.status in (301, 302, 303, 307, 308) and location:
+                        url = urljoin(url, location)
+                        continue
+                    body = await resp.text()
+            except ClientError as err:
+                raise OrangeError(
+                    f"Network error refreshing session at {url}: {err}"
+                ) from err
+            if "data-expected-kid" in body or "login-user" in body:
+                raise OrangeAuthError(
+                    "SSO session expired as well — a fresh cookie/login is required"
+                )
+            _LOGGER.debug("Session re-minted via SSO redirect chain (%s)", url)
+            return
+        raise OrangeError("Session refresh did not converge (redirect loop)")
 
     async def _get(self, path: str) -> Any:
         """GET ``{API_BASE}/{path}`` and return parsed JSON."""

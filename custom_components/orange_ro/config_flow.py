@@ -9,10 +9,7 @@ from typing import Any
 import voluptuous as vol
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
-from homeassistant.helpers.aiohttp_client import (
-    async_create_clientsession,
-    async_get_clientsession,
-)
+from homeassistant.helpers.aiohttp_client import async_create_clientsession
 
 from .api import OrangeApiClient, OrangeAuthError, OrangeError
 from .auth import OrangeLoginClient
@@ -28,7 +25,8 @@ class OrangeConfigFlow(ConfigFlow, domain=DOMAIN):
 
     async def _validate_cookie(self, cookie: str) -> dict[str, Any]:
         """Validate a cookie; return the logged-in user block."""
-        client = OrangeApiClient(async_get_clientsession(self.hass), cookie)
+        # Isolated jar — never let Orange cookies touch HA's shared session.
+        client = OrangeApiClient(async_create_clientsession(self.hass), cookie)
         return await client.async_validate()
 
     async def _login_password(self, username: str, password: str) -> tuple[str, dict[str, Any]]:
@@ -36,7 +34,9 @@ class OrangeConfigFlow(ConfigFlow, domain=DOMAIN):
         # Isolated cookie jar so the login redirects don't touch HA's shared jar.
         session = async_create_clientsession(self.hass)
         cookie = await OrangeLoginClient(session).async_login(username, password)
-        user = await OrangeApiClient(async_get_clientsession(self.hass), cookie).async_validate()
+        user = await OrangeApiClient(
+            async_create_clientsession(self.hass), cookie
+        ).async_validate()
         return cookie, user
 
     # -- Initial setup --------------------------------------------------------

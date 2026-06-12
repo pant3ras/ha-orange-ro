@@ -19,7 +19,7 @@
       },
       "cookie": {
         "title": "Log in with a session cookie",
-        "description": "Log in at {url} in your browser, open DevTools → Network, click any `myaccount/api` request, and copy the full **Cookie** request header. Paste it below.",
+        "description": "**Use a private/incognito window** — if you copy the cookie from your normal browser session, Home Assistant and your browser will share one Orange session and keep logging each other out.\n\n1. Open an **incognito/private** window and log in at {url}\n2. Open DevTools → Network, click any `myaccount/api` request, copy the full **Cookie** request header\n3. Paste it below, then **close the incognito window without logging out**",
         "data": {
           "cookie": "Session cookie"
         }
@@ -42,7 +42,7 @@
       },
       "reauth_cookie": {
         "title": "Orange Romania session expired",
-        "description": "Your Orange session cookie expired. Log in again, copy a fresh **Cookie** header and paste it below.",
+        "description": "Your Orange session expired. Log in **in a private/incognito window**, copy a fresh **Cookie** header from any `myaccount/api` request, paste it below, then close the incognito window **without logging out**. Don't reuse that session in your browser — sharing it is what causes the constant logouts.",
         "data": {
           "cookie": "Session cookie"
         }

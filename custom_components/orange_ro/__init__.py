@@ -11,10 +11,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
-from homeassistant.helpers.aiohttp_client import (
-    async_create_clientsession,
-    async_get_clientsession,
-)
+from homeassistant.helpers.aiohttp_client import async_create_clientsession
 
 from .api import OrangeApiClient, OrangeAuthError, OrangeError
 from .auth import OrangeLoginClient
@@ -46,7 +43,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: OrangeConfigEntry) -> bo
     else:
         cookie = entry.data[CONF_COOKIE]
 
-    client = OrangeApiClient(async_get_clientsession(hass), cookie)
+    # Isolated session: HA's shared cookie jar would auto-store Orange's
+    # rotated cookies and silently override the header we manage ourselves.
+    client = OrangeApiClient(async_create_clientsession(hass), cookie)
     coordinator = OrangeDataCoordinator(
         hass, entry, client, login_client=login_client, credentials=credentials
     )
